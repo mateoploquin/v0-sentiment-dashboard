@@ -3,7 +3,6 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -104,34 +103,40 @@ export function SentimentDashboard() {
     return `${hours}h ago`
   }
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       handleSearch()
     }
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen gradient-mesh dark:gradient-mesh-dark">
       {/* Header */}
-      <header className="border-b border-border bg-card">
-        <div className="container mx-auto px-4 py-4">
+      <header className="glass-header dark:glass-header-dark sticky top-0 z-50 backdrop-blur-xl">
+        <div className="container mx-auto px-6 py-5">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-                <Activity className="h-6 w-6 text-primary-foreground" />
+            <div className="flex items-center gap-4">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-accent shadow-lg transition-smooth glow-on-hover">
+                <Activity className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-semibold text-foreground">Sentiment Monitor</h1>
-                <p className="text-sm text-muted-foreground">Real-time Reddit sentiment analysis</p>
+                <h1 className="text-xl font-semibold tracking-tight text-foreground">Sentiment Monitor</h1>
+                <p className="text-sm text-muted-foreground/80">Real-time sentiment analysis</p>
               </div>
             </div>
             {lastUpdated && (
               <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <div className="flex items-center gap-2 rounded-full bg-muted/40 px-4 py-2 text-sm text-muted-foreground backdrop-blur-sm">
                   <Clock className="h-4 w-4" />
-                  <span>Updated {formatLastUpdated()}</span>
+                  <span>{formatLastUpdated()}</span>
                 </div>
-                <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isLoading}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRefresh}
+                  disabled={isLoading}
+                  className="rounded-full bg-white/60 backdrop-blur-sm hover:bg-white/80 dark:bg-white/10 dark:hover:bg-white/20 transition-smooth border-white/40"
+                >
                   <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
                 </Button>
               </div>
@@ -140,29 +145,29 @@ export function SentimentDashboard() {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-6 py-8">
         {/* Search Bar */}
-        <Card className="mb-8 p-6">
+        <div className="mb-8 glass-card dark:glass-card-dark rounded-3xl p-6 shadow-2xl transition-smooth hover:shadow-3xl">
           <div className="flex gap-3">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+              <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground/60" />
               <Input
                 type="text"
                 placeholder="Enter company name..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                onKeyPress={handleKeyPress}
+                onKeyDown={handleKeyDown}
                 onFocus={() => setShowHistory(true)}
-                className="pl-10"
+                className="pl-12 h-12 rounded-2xl border-white/30 bg-white/50 backdrop-blur-sm dark:bg-white/5 dark:border-white/10 transition-smooth focus:bg-white/70 dark:focus:bg-white/10 focus:ring-2 focus:ring-primary/20"
               />
               {showHistory && searchHistory.length > 0 && (
-                <div className="absolute left-0 right-0 top-full z-10 mt-2 rounded-lg border border-border bg-card shadow-lg">
-                  <div className="flex items-center justify-between border-b border-border px-4 py-2">
+                <div className="absolute left-0 right-0 top-full z-10 mt-3 rounded-2xl glass-card dark:glass-card-dark shadow-2xl overflow-hidden">
+                  <div className="flex items-center justify-between border-b border-white/20 dark:border-white/10 px-5 py-3 bg-white/40 dark:bg-white/5">
                     <div className="flex items-center gap-2 text-sm font-medium text-foreground">
                       <History className="h-4 w-4" />
                       Recent Searches
                     </div>
-                    <Button variant="ghost" size="sm" onClick={handleClearHistory}>
+                    <Button variant="ghost" size="sm" onClick={handleClearHistory} className="h-8 rounded-xl hover:bg-white/40 dark:hover:bg-white/10">
                       Clear
                     </Button>
                   </div>
@@ -171,11 +176,11 @@ export function SentimentDashboard() {
                       <button
                         key={index}
                         onClick={() => handleHistorySelect(item)}
-                        className="flex w-full items-center justify-between px-4 py-3 text-left transition-colors hover:bg-accent"
+                        className="flex w-full items-center justify-between px-5 py-3 text-left transition-smooth hover:bg-white/50 dark:hover:bg-white/10"
                       >
                         <div className="flex items-center gap-3">
                           <span className="font-medium text-foreground">{item.company}</span>
-                          <Badge variant={item.score > 20 ? "default" : item.score < -20 ? "destructive" : "secondary"}>
+                          <Badge variant={item.score > 20 ? "default" : item.score < -20 ? "destructive" : "secondary"} className="rounded-full">
                             {item.score > 0 ? "+" : ""}
                             {item.score?.toFixed(1) ?? "0.0"}
                           </Badge>
@@ -189,102 +194,102 @@ export function SentimentDashboard() {
                 </div>
               )}
             </div>
-            <Button onClick={handleSearch} disabled={isLoading}>
+            <Button onClick={handleSearch} disabled={isLoading} className="h-12 rounded-2xl px-8 bg-gradient-to-br from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white font-medium shadow-lg hover:shadow-xl transition-smooth">
               {isLoading ? "Analyzing..." : "Analyze"}
             </Button>
           </div>
           {showHistory && searchHistory.length > 0 && (
             <div className="fixed inset-0 z-0" onClick={() => setShowHistory(false)} />
           )}
-        </Card>
+        </div>
 
         {error && (
-          <Card className="mb-8 border-destructive bg-destructive/10 p-6">
-            <p className="text-destructive">Failed to load sentiment data. Please try again.</p>
-          </Card>
+          <div className="mb-8 glass-card dark:glass-card-dark rounded-3xl border-destructive/30 bg-destructive/5 p-6">
+            <p className="text-destructive font-medium">Failed to load sentiment data. Please try again.</p>
+          </div>
         )}
 
         {/* Stats Grid */}
         {data && data.score !== undefined && (
           <>
-            <div className="mb-8 grid gap-4 md:grid-cols-4">
-              <Card className="p-6">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                    <TrendingUp className="h-5 w-5 text-primary" />
+            <div className="mb-8 grid gap-5 md:grid-cols-4">
+              <div className="glass-card dark:glass-card-dark rounded-3xl p-6 transition-smooth hover:scale-105 hover:shadow-2xl">
+                <div className="flex items-center gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 backdrop-blur-sm">
+                    <TrendingUp className="h-6 w-6 text-primary" />
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Sentiment Score</p>
-                    <p className="text-2xl font-semibold text-foreground">{data.score.toFixed(1)}</p>
+                    <p className="text-xs font-medium text-muted-foreground/70 uppercase tracking-wider">Score</p>
+                    <p className="text-3xl font-bold text-foreground tracking-tight">{data.score.toFixed(1)}</p>
                   </div>
                 </div>
-              </Card>
+              </div>
 
-              <Card className="p-6">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent/10">
-                    <MessageSquare className="h-5 w-5 text-accent" />
+              <div className="glass-card dark:glass-card-dark rounded-3xl p-6 transition-smooth hover:scale-105 hover:shadow-2xl">
+                <div className="flex items-center gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-accent/20 to-accent/10 backdrop-blur-sm">
+                    <MessageSquare className="h-6 w-6 text-accent" />
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Total Mentions</p>
-                    <p className="text-2xl font-semibold text-foreground">{data.total}</p>
+                    <p className="text-xs font-medium text-muted-foreground/70 uppercase tracking-wider">Total</p>
+                    <p className="text-3xl font-bold text-foreground tracking-tight">{data.total}</p>
                   </div>
                 </div>
-              </Card>
+              </div>
 
-              <Card className="p-6">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-chart-3/10">
-                    <div className="h-3 w-3 rounded-full bg-chart-3" />
+              <div className="glass-card dark:glass-card-dark rounded-3xl p-6 transition-smooth hover:scale-105 hover:shadow-2xl">
+                <div className="flex items-center gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-chart-3/20 to-chart-3/10 backdrop-blur-sm">
+                    <div className="h-4 w-4 rounded-full bg-chart-3 shadow-lg" />
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Positive</p>
-                    <p className="text-2xl font-semibold text-foreground">{data.positive}</p>
+                    <p className="text-xs font-medium text-muted-foreground/70 uppercase tracking-wider">Positive</p>
+                    <p className="text-3xl font-bold text-foreground tracking-tight">{data.positive}</p>
                   </div>
                 </div>
-              </Card>
+              </div>
 
-              <Card className="p-6">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-destructive/10">
-                    <div className="h-3 w-3 rounded-full bg-destructive" />
+              <div className="glass-card dark:glass-card-dark rounded-3xl p-6 transition-smooth hover:scale-105 hover:shadow-2xl">
+                <div className="flex items-center gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-destructive/20 to-destructive/10 backdrop-blur-sm">
+                    <div className="h-4 w-4 rounded-full bg-destructive shadow-lg" />
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Negative</p>
-                    <p className="text-2xl font-semibold text-foreground">{data.negative}</p>
+                    <p className="text-xs font-medium text-muted-foreground/70 uppercase tracking-wider">Negative</p>
+                    <p className="text-3xl font-bold text-foreground tracking-tight">{data.negative}</p>
                   </div>
                 </div>
-              </Card>
+              </div>
             </div>
 
             {/* Main Content Grid */}
-            <div className="grid gap-8 lg:grid-cols-2">
+            <div className="grid gap-6 lg:grid-cols-2">
               {/* Sentiment Gauge */}
-              <Card className="p-6">
-                <h2 className="mb-6 text-lg font-semibold text-foreground">Live Sentiment</h2>
+              <div className="glass-card dark:glass-card-dark rounded-3xl p-8 shadow-xl transition-smooth">
+                <h2 className="mb-6 text-lg font-semibold text-foreground tracking-tight">Live Sentiment</h2>
                 <SentimentGauge score={data.score} />
-              </Card>
+              </div>
 
               {/* Sentiment Trend Chart */}
-              <Card className="p-6">
-                <h2 className="mb-6 text-lg font-semibold text-foreground">Sentiment Trend</h2>
+              <div className="glass-card dark:glass-card-dark rounded-3xl p-8 shadow-xl transition-smooth">
+                <h2 className="mb-6 text-lg font-semibold text-foreground tracking-tight">Sentiment Trend</h2>
                 <SentimentChart data={data.history} />
-              </Card>
+              </div>
             </div>
 
             {/* Recent Mentions */}
-            <Card className="mt-8 p-6">
-              <h2 className="mb-6 text-lg font-semibold text-foreground">Recent Mentions</h2>
+            <div className="mt-6 glass-card dark:glass-card-dark rounded-3xl p-8 shadow-xl transition-smooth">
+              <h2 className="mb-6 text-lg font-semibold text-foreground tracking-tight">Recent Mentions</h2>
               <MentionsList mentions={data.mentions} />
-            </Card>
+            </div>
           </>
         )}
 
         {isLoading && !data && (
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
-              <div className="mb-4 inline-block h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-              <p className="text-muted-foreground">Analyzing sentiment...</p>
+              <div className="mb-4 inline-block h-10 w-10 animate-spin rounded-full border-4 border-primary/30 border-t-primary" />
+              <p className="text-muted-foreground font-medium">Analyzing sentiment...</p>
             </div>
           </div>
         )}
