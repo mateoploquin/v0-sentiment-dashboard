@@ -43,6 +43,11 @@ export function SentimentDashboard() {
   const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([])
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [showHistory, setShowHistory] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const { data, error, isLoading, mutate } = useSWR<SentimentData>(
     `/api/sentiment?company=${encodeURIComponent(company)}`,
@@ -94,7 +99,7 @@ export function SentimentDashboard() {
   }
 
   const formatLastUpdated = () => {
-    if (!lastUpdated) return "Never"
+    if (!mounted || !lastUpdated) return "Never"
     const seconds = Math.floor((Date.now() - lastUpdated.getTime()) / 1000)
     if (seconds < 60) return `${seconds}s ago`
     const minutes = Math.floor(seconds / 60)
@@ -287,9 +292,32 @@ export function SentimentDashboard() {
 
         {isLoading && !data && (
           <div className="flex items-center justify-center py-20">
-            <div className="text-center">
-              <div className="mb-4 inline-block h-10 w-10 animate-spin rounded-full border-4 border-primary/30 border-t-primary" />
-              <p className="text-muted-foreground font-medium">Analyzing sentiment...</p>
+            <div className="text-center glass-card dark:glass-card-dark rounded-3xl p-8 max-w-md">
+              <div className="mb-6 inline-block h-12 w-12 animate-spin rounded-full border-4 border-primary/30 border-t-primary" />
+              <h3 className="text-lg font-semibold text-foreground mb-3">Analyzing Sentiment</h3>
+              <div className="space-y-2 text-sm text-muted-foreground">
+                <p className="flex items-center gap-2 justify-center">
+                  <span className="inline-block h-2 w-2 rounded-full bg-primary animate-pulse" />
+                  Generating relevant topics
+                </p>
+                <p className="flex items-center gap-2 justify-center">
+                  <span className="inline-block h-2 w-2 rounded-full bg-primary animate-pulse" style={{ animationDelay: "0.2s" }} />
+                  Searching Reddit discussions
+                </p>
+                <p className="flex items-center gap-2 justify-center">
+                  <span className="inline-block h-2 w-2 rounded-full bg-primary animate-pulse" style={{ animationDelay: "0.4s" }} />
+                  Collecting comments
+                </p>
+                <p className="flex items-center gap-2 justify-center">
+                  <span className="inline-block h-2 w-2 rounded-full bg-primary animate-pulse" style={{ animationDelay: "0.6s" }} />
+                  Filtering for relevance
+                </p>
+                <p className="flex items-center gap-2 justify-center">
+                  <span className="inline-block h-2 w-2 rounded-full bg-primary animate-pulse" style={{ animationDelay: "0.8s" }} />
+                  Analyzing with AI
+                </p>
+              </div>
+              <p className="mt-6 text-xs text-muted-foreground/60">This may take 15-30 seconds...</p>
             </div>
           </div>
         )}

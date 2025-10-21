@@ -92,4 +92,98 @@ export class RedditClient {
     const subredditSet = new Set(subreddits.map((s) => s.toLowerCase()))
     return posts.filter((post) => subredditSet.has(post.data.subreddit.toLowerCase()))
   }
+
+  /**
+   * Fetches comments from a Reddit post
+   */
+  async fetchComments(permalink: string): Promise<any[]> {
+    try {
+      const url = `https://www.reddit.com${permalink}.json`
+
+      const response = await fetch(url, {
+        headers: {
+          "User-Agent": this.userAgent,
+          Accept: "application/json, text/plain, */*",
+          "Accept-Language": "en-US,en;q=0.9",
+          "Accept-Encoding": "gzip, deflate, br",
+          Referer: "https://www.reddit.com/",
+        },
+      })
+
+      if (!response.ok) {
+        return []
+      }
+
+      const contentType = response.headers.get("content-type")
+      if (!contentType || !contentType.includes("application/json")) {
+        return []
+      }
+
+      const data = await response.json()
+
+      // Reddit returns an array: [post_data, comments_data]
+      if (!Array.isArray(data) || data.length < 2) {
+        return []
+      }
+
+      const commentsData = data[1]
+      if (!commentsData?.data?.children) {
+        return []
+      }
+
+      // Extract all comments (flatten nested replies)
+      const comments = this.flattenComments(commentsData.data.children)
+
+      return comments
+    } catch (error) {
+      console.error("[v0] Error fetching comments:", error)
+      return []
+    }
+  }
+
+  /**
+   * Flattens nested comment structure into a single array
+   */
+  private flattenComments(children: any[]): any[] {
+    const comments: any[] = []
+
+    for (const child of children) {
+      if (child.kind === "t1" && child.data?.body) {
+        // This is a comment
+        comments.push({
+          id: child.data.id,
+          body: child.data.body,
+          author: child.data.author,
+          score: child.data.score,
+          created_utc: child.data.created_utc,
+        })
+
+        // Recursively get replies
+        if (child.data.replies?.data?.children) {
+          comments.push(...this.flattenComments(child.data.replies.data.children))
+        }
+      }
+    }
+
+    return comments
+  }
+
+  /**
+   * Searches for posts across multiple topics
+   */
+  async searchMultipleTopics(
+    topics: string[],
+    options: { limit?: number; timeframe?: string } = {},
+  ): Promise<Map<string, RedditPost[]>> {
+    const results = new Map<string, RedditPost[]>()
+
+    for (const topic of topics) {
+      const posts = await this.search(topic, options)
+      if (posts.length > 0) {
+        results.set(topic, posts)
+      }
+    }
+
+    return results
+  }
 }
