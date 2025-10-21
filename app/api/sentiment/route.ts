@@ -4,6 +4,8 @@ import { RedditClient } from "@/lib/reddit-client"
 import { HistoryGenerator } from "@/lib/history-generator"
 import { TopicGenerator } from "@/lib/topic-generator"
 import { RelevanceFilter } from "@/lib/relevance-filter"
+import { TopicAnalyzer } from "@/lib/topic-analyzer"
+import { RecommendationEngine } from "@/lib/recommendation-engine"
 import type { SentimentData, MentionData } from "@/lib/types"
 
 interface RedditPost {
@@ -37,6 +39,8 @@ export async function GET(request: NextRequest) {
     const redditClient = new RedditClient()
     const relevanceFilter = new RelevanceFilter()
     const sentimentAnalyzer = new SentimentAnalyzer()
+    const topicAnalyzer = new TopicAnalyzer()
+    const recommendationEngine = new RecommendationEngine()
 
     // STAGE 1: Generate relevant topics
     console.log("[v0] Stage 1: Generating topics...")
@@ -189,6 +193,16 @@ export async function GET(request: NextRequest) {
     // Generate historical data
     const history = HistoryGenerator.generate(aggregate.averageScore)
 
+    // STAGE 6: Topic Clustering and Analysis
+    console.log("[v0] Stage 6: Clustering mentions by topic...")
+    const topicClusters = await topicAnalyzer.clusterByTopics(mentions, company)
+    console.log(`[v0] Identified ${topicClusters.length} topic clusters`)
+
+    // STAGE 7: Generate Recommendations
+    console.log("[v0] Stage 7: Generating actionable recommendations...")
+    const recommendations = await recommendationEngine.generateRecommendations(topicClusters, company)
+    console.log(`[v0] Generated ${recommendations.length} recommendations`)
+
     console.log(`[v0] ========== Analysis Complete: Score ${aggregate.averageScore.toFixed(1)} ==========`)
 
     const response: SentimentData = {
@@ -199,6 +213,8 @@ export async function GET(request: NextRequest) {
       negative: aggregate.negative,
       mentions,
       history,
+      topicClusters,
+      recommendations,
     }
 
     return NextResponse.json(response)

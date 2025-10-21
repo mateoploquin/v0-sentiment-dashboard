@@ -36,6 +36,43 @@ export interface MentionData {
   url: string
 }
 
+export interface TopicCluster {
+  topic: string
+  description: string
+  mentionCount: number
+  averageSentiment: number
+  positive: number
+  neutral: number
+  negative: number
+  mentions: MentionData[]
+  shouldAddress: boolean
+  priority: "high" | "medium" | "low"
+}
+
+export interface PostSuggestion {
+  id: string
+  title: string
+  description: string
+  angle: string
+}
+
+export interface ActionableRecommendation {
+  topic: string
+  priority: "high" | "medium" | "low"
+  issue: string
+  impact: string
+  postSuggestions: PostSuggestion[]
+  affectedMentions: number
+}
+
+export interface SocialMediaPost {
+  platform: "twitter" | "linkedin" | "facebook" | "instagram"
+  content: string
+  hashtags?: string[]
+  characterCount: number
+  mediaRecommendation?: string
+}
+
 export interface SentimentData {
   score: number
   total: number
@@ -47,4 +84,6 @@ export interface SentimentData {
     timestamp: string
     score: number
   }>
+  topicClusters?: TopicCluster[]
+  recommendations?: ActionableRecommendation[]
 }

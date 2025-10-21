@@ -10,9 +10,12 @@ import { SentimentGauge } from "@/components/sentiment-gauge"
 import { MentionsList } from "@/components/mentions-list"
 import { SentimentChart } from "@/components/sentiment-chart"
 import { AiInsights } from "@/components/ai-insights"
+import { TopicClusters } from "@/components/topic-clusters"
+import { Recommendations } from "@/components/recommendations"
 import { Search, TrendingUp, MessageSquare, Activity, RefreshCw, Clock, History } from "lucide-react"
 import useSWR from "swr"
 import { LocalStorage, type SearchHistoryItem } from "@/lib/storage"
+import type { TopicCluster, ActionableRecommendation } from "@/lib/types"
 
 interface SentimentData {
   score: number
@@ -35,6 +38,8 @@ interface SentimentData {
     timestamp: string
     score: number
   }>
+  topicClusters?: TopicCluster[]
+  recommendations?: ActionableRecommendation[]
 }
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
@@ -288,6 +293,20 @@ export function SentimentDashboard() {
               <AiInsights sentimentData={data} />
             </div>
 
+            {/* Topic Clusters */}
+            {data.topicClusters && data.topicClusters.length > 0 && (
+              <div className="mt-6 glass-card dark:glass-card-dark rounded-3xl p-8 shadow-xl transition-smooth">
+                <TopicClusters clusters={data.topicClusters} />
+              </div>
+            )}
+
+            {/* Recommendations */}
+            {data.recommendations && (
+              <div className="mt-6 glass-card dark:glass-card-dark rounded-3xl p-8 shadow-xl transition-smooth">
+                <Recommendations recommendations={data.recommendations} company={company} />
+              </div>
+            )}
+
             {/* Recent Mentions */}
             <div className="mt-6 glass-card dark:glass-card-dark rounded-3xl p-8 shadow-xl transition-smooth">
               <h2 className="mb-6 text-lg font-semibold text-foreground tracking-tight">Recent Mentions</h2>
@@ -322,8 +341,16 @@ export function SentimentDashboard() {
                   <span className="inline-block h-2 w-2 rounded-full bg-primary animate-pulse" style={{ animationDelay: "0.8s" }} />
                   Analyzing with AI
                 </p>
+                <p className="flex items-center gap-2 justify-center">
+                  <span className="inline-block h-2 w-2 rounded-full bg-primary animate-pulse" style={{ animationDelay: "1.0s" }} />
+                  Clustering topics
+                </p>
+                <p className="flex items-center gap-2 justify-center">
+                  <span className="inline-block h-2 w-2 rounded-full bg-primary animate-pulse" style={{ animationDelay: "1.2s" }} />
+                  Generating recommendations
+                </p>
               </div>
-              <p className="mt-6 text-xs text-muted-foreground/60">This may take 15-30 seconds...</p>
+              <p className="mt-6 text-xs text-muted-foreground/60">This may take 30-60 seconds...</p>
             </div>
           </div>
         )}
