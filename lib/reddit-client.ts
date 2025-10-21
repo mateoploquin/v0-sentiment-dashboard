@@ -15,13 +15,20 @@ export class RedditClient {
   /**
    * Searches Reddit for posts about a specific query
    */
-  async search(query: string, options: { limit?: number; timeframe?: string } = {}): Promise<RedditPost[]> {
-    const { limit = 20, timeframe = "day" } = options
+  async search(query: string, options: { limit?: number; timeframe?: string; company?: string } = {}): Promise<RedditPost[]> {
+    const { limit = 20, timeframe = "day", company } = options
 
     try {
       console.log("[v0] Fetching Reddit posts for:", query)
 
-      const url = `https://www.reddit.com/search.json?q=${encodeURIComponent(query)}&sort=new&limit=${limit}&t=${timeframe}`
+      // If company is provided, make the search more specific by requiring company in the query
+      let searchQuery = query
+      if (company && !query.toLowerCase().includes(company.toLowerCase())) {
+        searchQuery = `${company} ${query}`
+      }
+
+      // Use relevance sorting to get better results, and increase limit to compensate for filtering
+      const url = `https://www.reddit.com/search.json?q=${encodeURIComponent(searchQuery)}&sort=relevance&limit=${limit * 3}&t=${timeframe}`
 
       const response = await fetch(url, {
         headers: {
@@ -53,7 +60,55 @@ export class RedditClient {
         return []
       }
 
-      const posts = data.data.children
+      let posts = data.data.children
+
+      // If company is provided, STRICTLY filter posts to only include those that explicitly mention the company
+      if (company) {
+        const originalCount = posts.length
+        posts = posts.filter((post) => {
+          const title = post.data.title.toLowerCase()
+          const selftext = post.data.selftext.toLowerCase()
+          const lowerCompany = company.toLowerCase()
+
+          // Check if company name appears as a whole word in title or first 500 chars of text
+          // Use word boundaries to avoid matching "Tesla" in "Tesla coil" when looking for "Tesla" the company
+          const textToCheck = (title + " " + selftext.slice(0, 500)).toLowerCase()
+
+          // Create regex with word boundaries for exact company name match
+          const companyRegex = new RegExp(`\\b${lowerCompany.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i')
+
+          // Company name MUST appear in the title or early in the post (not buried deep)
+          const appearsInTitle = companyRegex.test(title)
+          const appearsEarlyInPost = companyRegex.test(textToCheck)
+
+          if (!appearsInTitle && !appearsEarlyInPost) {
+            return false
+          }
+
+          // Additional filtering: reject if it's clearly about something else
+          const irrelevantPatterns = [
+            /tesla\s+coil/i,  // Tesla coil (physics)
+            /nikola\s+tesla/i,  // The inventor, not the company
+            /tesla\s+(unit|measurement)/i,  // Tesla the unit of measurement
+            /\bhiring\b/i,  // Job postings
+            /\bwe'?re\s+hiring\b/i,  // Job postings
+            /\bjoin\s+our\s+team\b/i,  // Job postings
+            /\bposition\s+available\b/i,  // Job postings
+            /\bresume\b/i,  // Job postings
+          ]
+
+          if (irrelevantPatterns.some(pattern => pattern.test(textToCheck))) {
+            return false
+          }
+
+          return true
+        })
+
+        console.log(`[v0] STRICT FILTER: ${originalCount} posts -> ${posts.length} posts mentioning "${company}"`)
+      }
+
+      // Take only the requested limit after filtering
+      posts = posts.slice(0, limit)
 
       console.log("[v0] Found posts:", posts.length)
 

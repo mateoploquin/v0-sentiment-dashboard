@@ -52,8 +52,19 @@ export async function GET(request: NextRequest) {
     const allPosts: RedditPost[] = []
     const postsPerTopic = Math.ceil(50 / topics.length) // Increased from 15 to 50 total posts
 
-    for (const topic of topics) {
-      const posts = await redditClient.search(topic, { limit: postsPerTopic, timeframe: "week" }) // Changed from "day" to "week"
+    for (let i = 0; i < topics.length; i++) {
+      const topic = topics[i]
+
+      // Add delay between requests to avoid rate limiting (except for first request)
+      if (i > 0) {
+        await new Promise(resolve => setTimeout(resolve, 1000)) // 1 second delay
+      }
+
+      const posts = await redditClient.search(topic, {
+        limit: postsPerTopic,
+        timeframe: "week",
+        company: company // Pass company name for filtering
+      })
       console.log(`[v0] Found ${posts.length} posts for topic: "${topic}"`)
       allPosts.push(...posts)
     }
@@ -63,8 +74,16 @@ export async function GET(request: NextRequest) {
     console.log(`[v0] Total unique posts found: ${uniquePosts.length}`)
 
     if (uniquePosts.length === 0) {
-      console.log("[v0] No posts found, returning demo data")
-      return NextResponse.json(createDemoResponse(company))
+      console.log("[v0] No posts found")
+      return NextResponse.json({
+        score: 0,
+        total: 0,
+        positive: 0,
+        neutral: 0,
+        negative: 0,
+        mentions: [],
+        history: [],
+      })
     }
 
     // STAGE 3: Fetch comments from top posts
@@ -80,7 +99,14 @@ export async function GET(request: NextRequest) {
       postTitle: string
     }> = []
 
-    for (const post of postsToFetch) {
+    for (let i = 0; i < postsToFetch.length; i++) {
+      const post = postsToFetch[i]
+
+      // Add delay between comment fetches to avoid rate limiting (except for first request)
+      if (i > 0) {
+        await new Promise(resolve => setTimeout(resolve, 500)) // 0.5 second delay
+      }
+
       const comments = await redditClient.fetchComments(post.data.permalink)
       console.log(`[v0] Fetched ${comments.length} comments from post: "${post.data.title.slice(0, 50)}..."`)
 
@@ -177,74 +203,18 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(response)
   } catch (error) {
     console.error("[v0] Error:", error)
-    return NextResponse.json(createDemoResponse("Demo Company"), { status: 200 })
-  }
-}
-
-function createDemoResponse(company: string): SentimentData {
-  const demoMentions: MentionData[] = [
-    {
-      id: "demo1",
-      text: `Just bought ${company} products and I'm really impressed with the quality!`,
-      sentiment: "positive",
-      score: 0.85,
-      author: "demo_user_1",
-      subreddit: "technology",
-      created: new Date(Date.now() - 3600000).toISOString(),
-      url: "https://reddit.com/r/technology/demo1",
-    },
-    {
-      id: "demo2",
-      text: `${company} announced new features today. Looks interesting but waiting to see reviews.`,
-      sentiment: "neutral",
-      score: 0.1,
-      author: "demo_user_2",
-      subreddit: "business",
-      created: new Date(Date.now() - 7200000).toISOString(),
-      url: "https://reddit.com/r/business/demo2",
-    },
-    {
-      id: "demo3",
-      text: `Had some issues with ${company} customer service. Hope they improve.`,
-      sentiment: "negative",
-      score: -0.6,
-      author: "demo_user_3",
-      subreddit: "reviews",
-      created: new Date(Date.now() - 10800000).toISOString(),
-      url: "https://reddit.com/r/reviews/demo3",
-    },
-    {
-      id: "demo4",
-      text: `${company} is leading innovation in their industry. Excited for the future!`,
-      sentiment: "positive",
-      score: 0.9,
-      author: "demo_user_4",
-      subreddit: "investing",
-      created: new Date(Date.now() - 14400000).toISOString(),
-      url: "https://reddit.com/r/investing/demo4",
-    },
-    {
-      id: "demo5",
-      text: `${company} stock performance has been solid this quarter.`,
-      sentiment: "positive",
-      score: 0.7,
-      author: "demo_user_5",
-      subreddit: "stocks",
-      created: new Date(Date.now() - 18000000).toISOString(),
-      url: "https://reddit.com/r/stocks/demo5",
-    },
-  ]
-
-  const avgScore = demoMentions.reduce((sum, m) => sum + m.score, 0) / demoMentions.length
-  const normalizedScore = avgScore * 100
-
-  return {
-    score: normalizedScore,
-    total: demoMentions.length,
-    positive: demoMentions.filter((m) => m.sentiment === "positive").length,
-    neutral: demoMentions.filter((m) => m.sentiment === "neutral").length,
-    negative: demoMentions.filter((m) => m.sentiment === "negative").length,
-    mentions: demoMentions,
-    history: HistoryGenerator.generate(normalizedScore),
+    return NextResponse.json(
+      {
+        score: 0,
+        total: 0,
+        positive: 0,
+        neutral: 0,
+        negative: 0,
+        mentions: [],
+        history: [],
+        error: "Failed to fetch sentiment data. Please try again.",
+      },
+      { status: 500 }
+    )
   }
 }

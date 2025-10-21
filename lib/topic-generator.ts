@@ -45,19 +45,24 @@ export class TopicGenerator {
    * Builds the AI prompt for topic generation
    */
   private buildPrompt(company: string, count: number): string {
-    return `Generate ${count} relevant search topics/queries to find discussions about ${company} on Reddit.
+    return `Generate ${count} relevant search topics/queries to find SENTIMENT and OPINIONS about ${company} on Reddit.
 
-These topics should:
-- Cover different aspects (products, services, news, customer experience, competitors, industry trends)
-- Be specific enough to find relevant discussions
-- Include variations of the company name if applicable
-- Focus on topics people actually discuss on Reddit
+CRITICAL: Each topic MUST include "${company}" in the search string and focus on sentiment-bearing discussions.
 
-Respond with ONLY a JSON array of strings, no explanation:
-["topic 1", "topic 2", "topic 3", ...]
+Requirements for each topic:
+- MUST start with or include "${company}" explicitly
+- Focus on areas where people express OPINIONS/EXPERIENCES (reviews, complaints, praise, comparisons)
+- Avoid generic news or factual topics
+- Target specific products/services/features that people have feelings about
 
-Example for Apple:
-["Apple iPhone", "Apple customer service", "Apple vs Samsung", "iOS updates", "Apple stock"]
+Good examples for Tesla:
+["Tesla Model 3 owner experiences", "Tesla Autopilot reviews", "Tesla service center complaints", "Tesla vs other EVs", "Tesla charging issues"]
+
+Bad examples (too generic/factual):
+["Tesla news", "Tesla updates", "Tesla stock", "Electric vehicles"]
+
+Respond with ONLY a JSON array of ${count} strings:
+["${company} [specific aspect]", "${company} [specific aspect]", ...]
 
 Company: ${company}`
   }
