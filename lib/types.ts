@@ -27,6 +27,7 @@ export interface SentimentResult {
 export interface MentionData {
   id: string
   text: string
+  body?: string
   sentiment: "positive" | "neutral" | "negative"
   score: number
   author: string

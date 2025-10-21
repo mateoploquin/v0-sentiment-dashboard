@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { SentimentGauge } from "@/components/sentiment-gauge"
 import { MentionsList } from "@/components/mentions-list"
 import { SentimentChart } from "@/components/sentiment-chart"
+import { AiInsights } from "@/components/ai-insights"
 import { Search, TrendingUp, MessageSquare, Activity, RefreshCw, Clock, History } from "lucide-react"
 import useSWR from "swr"
 import { LocalStorage, type SearchHistoryItem } from "@/lib/storage"
@@ -22,6 +23,7 @@ interface SentimentData {
   mentions: Array<{
     id: string
     text: string
+    body?: string
     sentiment: "positive" | "neutral" | "negative"
     score: number
     author: string
@@ -280,6 +282,11 @@ export function SentimentDashboard() {
                 <h2 className="mb-6 text-lg font-semibold text-foreground tracking-tight">Sentiment Trend</h2>
                 <SentimentChart data={data.history} />
               </div>
+            </div>
+
+            {/* AI Insights */}
+            <div className="mt-6">
+              <AiInsights sentimentData={data} />
             </div>
 
             {/* Recent Mentions */}
