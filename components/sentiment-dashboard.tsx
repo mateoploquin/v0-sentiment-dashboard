@@ -55,8 +55,7 @@ export function SentimentDashboard() {
     `/api/sentiment?company=${encodeURIComponent(company)}`,
     fetcher,
     {
-      refreshInterval: 60000, // Refresh every minute
-      revalidateOnFocus: true,
+      revalidateOnFocus: false, // Disabled for testing to avoid Reddit rate limits
       onSuccess: () => {
         setLastUpdated(new Date())
       },

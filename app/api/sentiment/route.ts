@@ -171,6 +171,7 @@ export async function GET(request: NextRequest) {
         return {
           id: item.id,
           text: item.text.length > 200 ? item.text.slice(0, 200) + "..." : item.text,
+          body: item.text, // Store full text for AI summary
           sentiment: sentiment.label,
           score: sentiment.score,
           author: item.author,

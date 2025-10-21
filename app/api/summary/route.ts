@@ -56,31 +56,28 @@ function buildAnalysisPrompt(data: SentimentData): string {
     })
     .join("\n\n")
 
-  return `You are analyzing Reddit sentiment data. Please provide an executive summary and identify key themes.
+  return `Analyze this Reddit sentiment data. Be concise and actionable.
 
 SENTIMENT DATA:
 - Overall Score: ${data.score.toFixed(2)} (-100 to 100 scale)
-- Total Mentions: ${data.total}
-- Positive: ${data.positive}
-- Neutral: ${data.neutral}
-- Negative: ${data.negative}
+- Total: ${data.total} | Positive: ${data.positive} | Neutral: ${data.neutral} | Negative: ${data.negative}
 
-REDDIT POSTS (with full text):
+REDDIT POSTS:
 ${mentionsText}
 
-Please respond with ONLY valid JSON in this exact format:
+Respond with ONLY valid JSON:
 {
-  "executive_summary": "A concise 2-3 sentence paragraph summarizing the overall sentiment and key findings.",
+  "executive_summary": "1-2 sentence summary of overall sentiment",
   "key_themes": [
     {
-      "theme": "Theme name",
+      "theme": "Short theme name (3-5 words max)",
       "sentiment": "positive" | "neutral" | "negative",
-      "description": "Brief description of this theme"
+      "description": "One concise sentence"
     }
   ]
 }
 
-Identify 3-5 key themes. Be specific and actionable.`
+Identify exactly 3-4 key themes. Keep descriptions under 15 words each.`
 }
 
 function parseAIResponse(text: string): SummaryResponse {
