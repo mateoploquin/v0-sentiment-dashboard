@@ -1,15 +1,19 @@
 // Sentiment Analysis Engine
 // Analyzes text sentiment using AI with fallback mechanisms
 
+import { createOpenAI } from "@ai-sdk/openai"
 import { generateText } from "ai"
 import type { SentimentResult } from "./types"
 
 export class SentimentAnalyzer {
-  private model: string
+  private model: any
   private temperature: number
 
-  constructor(model = "openai/gpt-4o-mini", temperature = 0.3) {
-    this.model = model
+  constructor(modelName = "gpt-4o-mini", temperature = 0.3) {
+    const openai = createOpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    })
+    this.model = openai(modelName)
     this.temperature = temperature
   }
 
