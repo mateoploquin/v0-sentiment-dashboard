@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
 
     // STAGE 1: Generate relevant topics
     console.log("[v0] Stage 1: Generating topics...")
-    const topics = await topicGenerator.generateTopics(company, 5)
+    const topics = await topicGenerator.generateTopics(company, 8) // Increased from 5 to 8 topics
 
     if (topics.length === 0) {
       console.log("[v0] No topics generated, falling back to company name")
@@ -50,10 +50,10 @@ export async function GET(request: NextRequest) {
     // STAGE 2: Search Reddit for posts across all topics
     console.log(`[v0] Stage 2: Searching Reddit for ${topics.length} topics...`)
     const allPosts: RedditPost[] = []
-    const postsPerTopic = Math.ceil(15 / topics.length) // Distribute limit across topics
+    const postsPerTopic = Math.ceil(50 / topics.length) // Increased from 15 to 50 total posts
 
     for (const topic of topics) {
-      const posts = await redditClient.search(topic, { limit: postsPerTopic, timeframe: "day" })
+      const posts = await redditClient.search(topic, { limit: postsPerTopic, timeframe: "week" }) // Changed from "day" to "week"
       console.log(`[v0] Found ${posts.length} posts for topic: "${topic}"`)
       allPosts.push(...posts)
     }
@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
 
     // STAGE 3: Fetch comments from top posts
     console.log("[v0] Stage 3: Fetching comments from posts...")
-    const postsToFetch = uniquePosts.slice(0, 5) // Fetch comments from top 5 posts
+    const postsToFetch = uniquePosts.slice(0, 15) // Increased from 5 to 15 posts
     const allComments: Array<{
       id: string
       text: string
@@ -102,7 +102,7 @@ export async function GET(request: NextRequest) {
 
     // STAGE 4: Filter for relevance
     console.log("[v0] Stage 4: Filtering comments for relevance...")
-    const relevantCommentsRaw = await relevanceFilter.filterRelevant(allComments, company, 15)
+    const relevantCommentsRaw = await relevanceFilter.filterRelevant(allComments, company, 20) // Increased batch size from 15 to 20
 
     // If we don't have enough relevant comments, fall back to analyzing posts
     let itemsToAnalyze: Array<{
@@ -116,7 +116,7 @@ export async function GET(request: NextRequest) {
 
     if (relevantCommentsRaw.length < 5) {
       console.log("[v0] Not enough relevant comments, using posts instead")
-      itemsToAnalyze = uniquePosts.slice(0, 10).map((post) => ({
+      itemsToAnalyze = uniquePosts.slice(0, 20).map((post) => ({ // Increased from 10 to 20
         id: post.data.id,
         text: redditClient.extractText(post),
         author: post.data.author,
@@ -126,7 +126,7 @@ export async function GET(request: NextRequest) {
       }))
     } else {
       // Cast the filtered comments to the correct type
-      itemsToAnalyze = relevantCommentsRaw.slice(0, 20).map((comment) => ({
+      itemsToAnalyze = relevantCommentsRaw.slice(0, 40).map((comment) => ({ // Increased from 20 to 40
         id: comment.id,
         text: comment.text,
         author: (comment as any).author,
